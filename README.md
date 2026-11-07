@@ -1,42 +1,68 @@
 # Biblio
 
-A small macOS app that renames downloaded article PDFs to `Surname - Year.pdf` and keeps an APA (or Harvard, MLA, Chicago, IEEE) reference list as a `.docx` next to them.
+Biblio is a small macOS app that renames the article PDFs you download to **`Surname - Year.pdf`** and keeps a formatted reference list (APA 7 by default) as a Word file next to them. It is built for researchers who collect a lot of papers and want a tidy literature folder without typing anything.
 
-- Drag and drop PDFs or folders, or watch folders: new PDFs are renamed automatically.
-- Metadata comes from the DOI / title on the first page, looked up in Crossref and OpenAlex (OCR for scanned PDFs). Only the DOI or a few title lines are sent; the PDF itself never leaves your Mac. You can turn online lookup off.
-- Files that cannot be resolved get a `!! ` prefix so they sort to the top of the folder; you can enter the details by hand.
-- References tab: paste a bibliography, find the articles and download open-access PDFs.
-- English and Turkish interface. Requires macOS 13+. Build with the Command Line Tools only (no Xcode): `./build.sh --install`.
-- A free OpenAlex API key can be added in Settings for higher limits.
+## Features
 
-Released under the MIT License. Provided as is, without warranty: always check the generated names and references.
+- **Automatic renaming.** Drop PDFs or folders on the window, or add *watched folders*: new PDFs that appear there are renamed on their own, with no confirmation step. Every rename can be undone.
+- **Accurate metadata.** Biblio reads the first pages (with OCR for scanned PDFs), finds the DOI or the title, and looks the work up in Crossref, OpenAlex, DataCite/doi.org and Open Library. A match is accepted only if the title and an author surname really appear on the page, so look-alike records are rejected rather than guessed.
+- **Naming rules.** One author: `Becker - 1965`. Two: `Becker & Murphy - 1988`. Three or more: `Becker et al - 1988`. Names are plain ASCII, duplicates get a letter (`2013a`, `2013b`), and a missing year becomes `xxxx`. Several presets and a custom template (`{Author} {FirstAuthor} {Year} {Title} {Journal} {DOI}`) are available, with a live preview.
+- **Reference list as `.docx`.** For every renamed file the reference is added to `References.docx` in the same folder: alphabetical, hanging indent, double spaced, journal and book titles in real italics. Styles: APA 7, Harvard, MLA 9, Chicago (author-date), IEEE. Changing the style rewrites the list.
+- **Problem files are easy to spot.** A PDF that cannot be resolved is renamed with a `!! ` prefix so it sorts to the top of the folder, and its row explains why. References that are incomplete (no year, no title, no journal) are written in **bold red** in the Word file.
+- **Manual entry.** For an unresolved file, press *Enter details…* and type the authors, year and so on. You can also paste a ready-made reference such as `Becker, G. S. (1965). A theory of the allocation of time. The Economic Journal, 75(299), 493-517.` and press *Fill the fields from this reference*: authors, year, title, journal, volume, issue, pages, DOI and type are parsed offline.
+- **References tab.** Drop a bibliography (`.docx` or `.txt`): each line is looked up, all versions of the work (article, working paper, preprint) are listed, and open-access PDFs can be downloaded and named automatically. For paywalled articles Biblio only opens the DOI page in your browser; it never bypasses a paywall.
+- **History control.** Each tab can clear its history, and each row can be dismissed. This only changes what is shown; files and the reference list are not touched.
+- **English and Turkish interface.**
 
----
+## Install
 
-# Biblio (eski adı Künye)
+Biblio needs macOS 13 or later and the Xcode Command Line Tools (full Xcode is not required).
 
-PDF makaleleri `Soyad - Yıl.pdf` biçiminde otomatik adlandırır.
+```bash
+git clone https://github.com/<your-user>/biblio.git
+cd biblio
+./build.sh --install     # builds build/Biblio.app and copies it to /Applications
+```
 
-- Pencereye PDF/klasör sürükle-bırak, ya da izlenen klasörlere düşenleri otomatik adlandırır.
-- Kaynak sırası: DOI → Crossref, başlık → Crossref/OpenAlex, ilk sayfa metni (taranmış PDF'lerde OCR).
-- Tek yazar `Soyad - 2020`, iki yazar `A & B - 2020`, üç+ `A et al - 2020`; aynı ad çakışırsa harf eki. Türkçe karakter yok.
-- Her işlem geri alınabilir.
+`./build.sh` alone builds `build/Biblio.app` without installing. The app is signed ad hoc, so on first launch macOS may ask you to confirm: right-click the app and choose *Open*. Folder access is requested the first time you add a folder.
 
-Derleme: `./build.sh` (build/Kunye.app), kurulum: `./build.sh --install` (/Applications). Xcode gerekmez, komut satırı araçları yeter.
-`cli/` komut satırı sürümü (`--dry-run` destekler); `pdfadi_python_prototip.py` ilk prototip.
+## Privacy
 
-## APA künyeleri
-Dosya adlandırılırken künyesi APA 7 biçiminde klasördeki `Künyeler.docx` dosyasına eklenir: alfabetik sıralı, asılı girintili, çift aralıklı, dergi/cilt/kitap adları italik. Künyeler gizli `.Künyeler.json` dosyasında tutulur ve docx her eklemede o listeden yeniden üretilir (docx'i elle düzenlediysen değişikliklerin üzerine yazılır; düzenlemeden önce başka yere kopyala). Aynı künye iki kez eklenmez, adlandırma geri alınınca satır silinir. Tam bilgi bulunamazsa satır "[Eksik künye…]" notuyla yazılır.
+- PDFs are never uploaded. Only a DOI or a few lines of the title are sent to the metadata services, and only when *online lookup* is on.
+- Online lookup can be switched off in Settings. Accuracy is then much lower (the first-page text and file name are all Biblio has), and unresolved files are flagged.
+- No analytics and no account. Settings and history live in `~/Library/Application Support/Kunye/` (the folder keeps its old name so existing settings carry over).
+- An optional free [OpenAlex](https://openalex.org) API key in Settings raises the rate limits, which helps when you process hundreds of files at once.
 
-## Kaynakça sekmesi
-Bir kaynakça listesini (.docx veya .txt) bırakınca her satır Crossref'te aranır (başlık, ilk yazar ve yıl satırla uyuşmalı), sonra OpenAlex'ten aynı eserin tüm sürümleri (makale + çalışma kâğıdı/preprint) ve açık erişimli PDF bağlantıları alınır.
-Açık erişimli PDF'ler indirme klasörüne indirilir (içerik aynıysa tek kopya tutulur) ve Künye ile adlandırılıp künyeleri eklenir. Makalenin açık PDF'i yoksa (abonelik gerekir) indirme denenmez; DOI sayfası "Sayfayı aç" düğmesiyle (ya da 5'erli gruplar hâlinde) tarayıcıda açılır.
+## How it works
 
-## Dil, adlandırma ve künye stilleri (Ayarlar sekmesi)
-- **Dil:** İngilizce (varsayılan) ve Türkçe. Metinler `Sources/Loc.swift` içindeki çeviri tablosunda.
-- **Dosya adı biçimi:** hazır kalıplar (Yazar - Yıl, Yazar (Yıl), Yazar - Yıl - Başlık, …) ya da özel kalıp: `{Author} {FirstAuthor} {Year} {Title} {Journal} {DOI}`. Başlık uzunluğu sınırı, kaç yazarın yazılacağı, yazar ayracı (&, and, ve, virgül), "et al" biçimi ve aksanlı harfleri koruma ayarlanabilir; ayarlarda canlı önizleme var. Adı zaten doğru olan dosyalara dokunulmaz.
-- **Künye stili:** APA 7, Harvard, MLA 9, Chicago (author-date), IEEE. Klasördeki liste tam yayın bilgisiyle saklandığı için stil değişince yeniden yazılır. Dosya adı da ayarlanabilir (varsayılan References / Künyeler).
-- Kod yapısı: `Namer.swift` (adlandırma), `Cite.swift` (stiller), `Loc.swift` (diller), `Engine.swift` (çözümleme), `Model.swift`, `App.swift`, `Docx.swift`, `Biblio.swift` (kaynakça sekmesi).
+1. The first two pages are read with PDFKit; if there is almost no text, Vision OCR (English and Turkish) is used.
+2. A DOI on the page is resolved directly. Otherwise title phrases and author lines are searched in Crossref and OpenAlex, with extra handling for arXiv, SSRN, NBER, JSTOR, EconStor and MPRA cover pages, ISBNs and file names.
+3. A candidate is verified against the page (title words, author surname, plausible year) before it is trusted; journal versions are preferred over working-paper records.
+4. The file is renamed, the full reference is stored in a hidden `.References.json` beside the PDFs, and `References.docx` is regenerated from it.
 
-## Elle giriş
-Otomatik çözülemeyen dosyaların satırında **Bilgileri gir…** düğmesi çıkar: yazarlar, yıl, başlık, dergi vb. (ya da hazır künye metni) yazılır; dosya adlandırılır ve künye listeye eklenir. Geri alınabilir.
+Four files are processed at a time, and rate-limited or offline files are retried after a few minutes instead of being given a wrong name.
+
+## Project layout
+
+| Path | Purpose |
+|---|---|
+| `Sources/Engine.swift` | reading, OCR, lookups, verification, renaming |
+| `Sources/Namer.swift` | file name patterns |
+| `Sources/Cite.swift` | citation styles |
+| `Sources/RefParse.swift` | parser for pasted references |
+| `Sources/Docx.swift` | minimal `.docx` writer |
+| `Sources/Biblio.swift` | References tab (bibliography lookup and downloads) |
+| `Sources/Model.swift`, `Sources/App.swift` | state and SwiftUI interface |
+| `Sources/Loc.swift` | English/Turkish strings |
+| `cli/` | command-line evaluation tool (`--dry-run`, `--evaluate`) |
+| `icon/` | app icon and the script that draws it |
+
+## Limitations
+
+- Automatic matching is very good but not perfect. Check the names and the reference list, especially the red entries.
+- Books and unusual documents may only be matched from the file name or cover; those references are marked for checking.
+- Edits you make by hand in `References.docx` are overwritten the next time the list changes; copy the file elsewhere before editing.
+
+## License
+
+[MIT](LICENSE). Provided as is, without warranty.
