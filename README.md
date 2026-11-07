@@ -19,7 +19,7 @@ Biblio is a small macOS app that renames the article PDFs you download to **`Sur
 Biblio needs macOS 13 or later and the Xcode Command Line Tools (full Xcode is not required).
 
 ```bash
-git clone https://github.com/<your-user>/biblio.git
+git clone https://github.com/issenturk/biblio.git
 cd biblio
 ./build.sh --install     # builds build/Biblio.app and copies it to /Applications
 ```
