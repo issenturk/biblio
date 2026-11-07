@@ -169,7 +169,7 @@ enum Biblio {
 
     static func downloadPDF(_ url: URL, into folder: URL, stem: String) async -> URL? {
         var req = URLRequest(url: url, timeoutInterval: 60)
-        req.setValue("Mozilla/5.0 (Macintosh) Kunye/1.0", forHTTPHeaderField: "User-Agent")
+        req.setValue("Mozilla/5.0 (Macintosh) Biblio/1.0", forHTTPHeaderField: "User-Agent")
         req.setValue("application/pdf,*/*", forHTTPHeaderField: "Accept")
         do {
             let (tmp, resp) = try await URLSession.shared.download(for: req)

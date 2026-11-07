@@ -17,7 +17,7 @@ cat > "$APP/Contents/Info.plist" <<'PL'
 <plist version="1.0"><dict>
 <key>CFBundleName</key><string>Biblio</string>
 <key>CFBundleDisplayName</key><string>Biblio</string>
-<key>CFBundleIdentifier</key><string>local.kunye</string>
+<key>CFBundleIdentifier</key><string>local.biblio</string>
 <key>CFBundleExecutable</key><string>Biblio</string>
 <key>CFBundleIconFile</key><string>Biblio</string>
 <key>CFBundlePackageType</key><string>APPL</string>
@@ -30,5 +30,5 @@ cat > "$APP/Contents/Info.plist" <<'PL'
 </dict></plist>
 PL
 codesign --force --deep -s - "$APP"
-if [ "$1" = "--install" ]; then rm -rf "/Applications/Biblio.app" "/Applications/Bibliofile.app" "/Applications/Künye.app"; cp -R "$APP" "/Applications/Biblio.app"; echo "Kuruldu: /Applications/Biblio.app"; fi
+if [ "$1" = "--install" ]; then rm -rf "/Applications/Biblio.app"; cp -R "$APP" "/Applications/Biblio.app"; echo "Kuruldu: /Applications/Biblio.app"; fi
 echo "Hazır: $PWD/$APP"

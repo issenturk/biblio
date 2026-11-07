@@ -4,7 +4,7 @@ import Vision
 import AppKit
 import NaturalLanguage
 
-// Künye önce PDF'in kendi içeriğine bakar. "Çevrimiçi ara" açıksa DOI ve ilk sayfadaki başlık satırları
+// Biblio önce PDF'in kendi içeriğine bakar. "Çevrimiçi ara" açıksa DOI ve ilk sayfadaki başlık satırları
 // Crossref / OpenAlex / Open Library'ye sorulur (dosyanın kendisi gönderilmez).
 
 enum EngineError: Error { case network }
@@ -168,11 +168,11 @@ enum Engine {
         var urlString = urlString
         let isOA = urlString.contains("api.openalex.org")
         if isOA, let k = openAlexKey, !k.isEmpty { urlString += "&api_key=" + k }
-        if ProcessInfo.processInfo.environment["KUNYE_OFFLINE"] != nil { lastIssue = Loc.t("no internet connection (test)"); throw EngineError.network }
+        if ProcessInfo.processInfo.environment["BIBLIO_OFFLINE"] != nil { lastIssue = Loc.t("no internet connection (test)"); throw EngineError.network }
         if isOA && Date() < openAlexCooldownUntil { lastIssue = Loc.t("OpenAlex limit reached (will retry after %@)", hhmm(openAlexCooldownUntil)); throw EngineError.network }   // limit doluysa gereksiz bekleme
         guard let url = URL(string: urlString) else { return nil }
         var req = URLRequest(url: url, timeoutInterval: 20)
-        req.setValue("Kunye/1.0", forHTTPHeaderField: "User-Agent")
+        req.setValue("Biblio/1.0", forHTTPHeaderField: "User-Agent")
         if let accept { req.setValue(accept, forHTTPHeaderField: "Accept") }
         for attempt in 0..<3 {
             do {

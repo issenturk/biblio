@@ -30,7 +30,7 @@ cd biblio
 
 - PDFs are never uploaded. Only a DOI or a few lines of the title are sent to the metadata services, and only when *online lookup* is on.
 - Online lookup can be switched off in Settings. Accuracy is then much lower (the first-page text and file name are all Biblio has), and unresolved files are flagged.
-- No analytics and no account. Settings and history live in `~/Library/Application Support/Kunye/` (the folder keeps its old name so existing settings carry over).
+- No analytics and no account. Settings and history live in `~/Library/Application Support/Biblio/`.
 - An optional free [OpenAlex](https://openalex.org) API key in Settings raises the rate limits, which helps when you process hundreds of files at once.
 
 ## How it works

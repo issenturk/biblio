@@ -1,6 +1,6 @@
 import Foundation
 
-// Kullanım: kunye-cli [--dry-run] [--evaluate] [--apa] [--guess] [--template "{Author} - {Year}"] [--title-max 60]
+// Kullanım: biblio-cli [--dry-run] [--evaluate] [--apa] [--guess] [--template "{Author} - {Year}"] [--title-max 60]
 //                     [--authors 2] [--and "&"] [--accents] [--style apa|harvard|mla|chicago|ieee] [--lang en|tr] DOSYA_veya_KLASOR...
 var args = Array(CommandLine.arguments.dropFirst())
 func take(_ name: String) -> String? {

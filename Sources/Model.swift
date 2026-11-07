@@ -54,7 +54,7 @@ struct State: Codable {
     var engineVersion: Int?
     var refFolder: String?             // kaynakça PDF'lerinin indirileceği klasör
     var kunyeDone: [String: Double]?   // künyesi işlenmiş, adı zaten doğru dosyalar
-    var namedFiles: [String: Double]?  // Künye'nin kendi adlandırdığı dosyalar (şablondan bağımsız tekrar işlenmesin)
+    var namedFiles: [String: Double]?  // Biblio'nun kendi adlandırdığı dosyalar (şablondan bağımsız tekrar işlenmesin)
     var language: String?              // "en" (varsayılan) ya da "tr"
     var namePreset: String?            // hazır şablon kimliği ya da "custom"
     var nameTemplate: String?          // özel şablon
@@ -97,7 +97,12 @@ final class Model: ObservableObject {
     private var inFlight = Set<String>()
     private var timer: Timer?
     private let fileURL: URL = {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Kunye")
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let dir = base.appendingPathComponent("Biblio")
+        let old = base.appendingPathComponent("Kunye")   // eski sürümün klasörü: ayarlar ve geçmiş bir kez taşınır
+        if !FileManager.default.fileExists(atPath: dir.path), FileManager.default.fileExists(atPath: old.path) {
+            try? FileManager.default.moveItem(at: old, to: dir)
+        }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("state.json")
     }()
@@ -271,7 +276,7 @@ final class Model: ObservableObject {
                     got.append(f); notes.append(t("%@ downloaded", t(v.label))); if v.isPublished { published = true }
                 }
             }
-            if !got.isEmpty { run(got, force: true) }   // indirilenler Künye ile adlandırılır, künyeleri eklenir
+            if !got.isEmpty { run(got, force: true) }   // indirilenler Biblio ile adlandırılır, künyeleri eklenir
             refItems[i].page = published ? nil : r.landing
             var note = notes.joined(separator: ", ")
             if refItems[i].page != nil { note += (note.isEmpty ? "" : "; ") + t("no open PDF for the article: open the page and download it with your subscription") }
@@ -325,7 +330,7 @@ final class Model: ObservableObject {
         let wantKunye = (state.writeApa ?? true) && Engine.onlineEnabled
         let files = pdfs(in: URL(fileURLWithPath: folder)).filter { f in
             if let t = pendingUntil[f.path], t > Date() { return false }
-            if state.namedFiles?[f.path] == mtime(f) { return false }   // Künye'nin kendi adlandırdığı dosya
+            if state.namedFiles?[f.path] == mtime(f) { return false }   // Biblio'nun kendi adlandırdığı dosya
             if Engine.alreadyNamed(f.deletingPathExtension().lastPathComponent) {
                 return wantKunye && state.kunyeDone?[f.path] != mtime(f)    // adı doğru olanlar: künye bir kez üretilir
             }
