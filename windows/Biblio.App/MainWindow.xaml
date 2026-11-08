@@ -78,7 +78,60 @@
             </Grid>
         </TabItem>
         <TabItem x:Name="TabRefs">
-            <TextBlock x:Name="RefsText" Margin="20" TextWrapping="Wrap" FontSize="14" Foreground="#555"/>
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/><RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border x:Name="RefDropZone" Grid.Row="0" AllowDrop="True" MinHeight="96" BorderBrush="#8896A5" BorderThickness="2" CornerRadius="10" Background="#F3F6F9" Cursor="Hand"
+                        Drop="RefDrop_Drop" DragOver="RefDrop_DragOver" DragLeave="RefDrop_DragLeave" MouseLeftButtonUp="RefDrop_Click">
+                    <StackPanel VerticalAlignment="Center" Margin="12,8">
+                        <TextBlock x:Name="RefDropTitle" HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold" Foreground="#44505C"/>
+                        <TextBlock x:Name="RefDropHint" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Foreground="#667" Margin="0,4,0,0"/>
+                        <ProgressBar x:Name="RefProgress" IsIndeterminate="True" Height="4" Width="160" Margin="0,8,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+                <DockPanel Grid.Row="1" Margin="0,10,0,4">
+                    <Button x:Name="RefFolderBtn" DockPanel.Dock="Right" Padding="10,2" Click="RefFolder_Click"/>
+                    <TextBlock x:Name="RefFolderText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </DockPanel>
+                <Border x:Name="RefPagesBanner" Grid.Row="2" Background="#FFF4D6" BorderBrush="#E0B84A" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,4,0,4" Visibility="Collapsed">
+                    <DockPanel>
+                        <Button x:Name="RefNextBtn" DockPanel.Dock="Right" Padding="10,2" Click="RefNext_Click"/>
+                        <TextBlock x:Name="RefPagesText" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="12"/>
+                    </DockPanel>
+                </Border>
+                <DockPanel Grid.Row="3" Margin="0,4,0,4">
+                    <Button x:Name="RefClearBtn" DockPanel.Dock="Right" Padding="10,2" Click="RefClear_Click"/>
+                    <TextBlock/>
+                </DockPanel>
+                <ListBox x:Name="RefList" Grid.Row="4" HorizontalContentAlignment="Stretch">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Icon}" FontSize="16" VerticalAlignment="Top" Foreground="{Binding IconBrush}"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding Display}" TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Foreground="#667" FontSize="11.5">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers><DataTrigger Binding="{Binding HasNote}" Value="False"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
+                                    <Button Content="{Binding PageLabel}" Click="RefOpenPage_Click" Tag="{Binding}" Margin="0,0,6,0" Padding="8,1">
+                                        <Button.Style><Style TargetType="Button"><Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers><DataTrigger Binding="{Binding HasPage}" Value="True"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                                    </Button>
+                                    <Button Content="✕" Click="RefRemove_Click" Tag="{Binding}" Padding="6,0" Background="Transparent" BorderThickness="0"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
         </TabItem>
         <TabItem x:Name="TabSettings">
             <ScrollViewer VerticalScrollBarVisibility="Auto">

@@ -29,6 +29,29 @@ if (parseArg != null)
     }
     return;
 }
+var refsArg = Take("--refs");
+if (refsArg != null)
+{
+    var dl = Take("--download");
+    var list = Bibliography.Entries(refsArg);
+    Console.WriteLine($"{list.Count} entries");
+    foreach (var e in list)
+    {
+        try
+        {
+            var r = await Bibliography.Resolve(e);
+            if (r == null) { Console.WriteLine($"?? {e[..Math.Min(70, e.Length)]}"); continue; }
+            Console.WriteLine($"OK {r.Title} | {r.Doi} | landing={r.Landing} | openAlexDown={r.OpenAlexDown}");
+            foreach (var v in r.Versions)
+            {
+                Console.WriteLine($"   - {v.Label}: {v.Pdf}");
+                if (dl != null && v.Pdf != null) Console.WriteLine("     downloaded: " + (await Bibliography.DownloadPdf(v.Pdf, dl, "ref-test") ?? "no"));
+            }
+        }
+        catch (Exception ex) { Console.WriteLine("!! " + ex.Message + " " + Engine.LastIssue); }
+    }
+    return;
+}
 var files = new List<string>();
 foreach (var p in args_.Where(a => !a.StartsWith("--")))
 {

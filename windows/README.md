@@ -22,7 +22,6 @@ Projects: `Biblio.Core` (engine, cross-platform), `Biblio.Cli` (command-line tes
 
 - OCR for scanned PDFs uses Windows' built-in OCR. English is available by default; add the Turkish language pack in *Settings → Time & language* for Turkish scans.
 - Sentence-casing of titles in references has no name recognizer on Windows: author surnames and a list of common proper nouns are kept capitalised, other words are lowercased. Check titles that contain names or places.
-- The *References* tab (bibliography lookup and downloads) is not in the Windows version yet.
 - Settings and history are stored in `%APPDATA%\Biblio\state.json`.
 
 ## Status

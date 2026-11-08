@@ -7,7 +7,7 @@ public static class Loc
 
     static readonly Dictionary<string, string> Tr = new()
     {
-        ["Rename"] = "Adlandır", ["Settings"] = "Ayarlar", ["References"] = "Künyeler",
+        ["Rename"] = "Adlandır", ["Settings"] = "Ayarlar", ["References"] = "Kaynakça",
         ["Drop PDFs or folders here"] = "PDF veya klasörleri buraya bırakın",
         ["Files are renamed like: {0}"] = "Dosyalar şöyle adlandırılır: {0}",
         ["Watched folders"] = "İzlenen klasörler", ["Add folder…"] = "Klasör ekle…", ["Remove"] = "Kaldır",
@@ -55,8 +55,22 @@ public static class Loc
         ["Rename and add to list"] = "Adlandır ve listeye ekle", ["Cancel"] = "Vazgeç",
         ["Enter at least one author"] = "En az bir yazar girin", ["The year must be four digits (or leave it empty)"] = "Yıl dört haneli olmalı (ya da boş bırakın)",
         ["Open the reference list"] = "Künye listesini aç", ["Open folder"] = "Klasörü aç",
-        ["The References tab (bibliography lookup and downloads) is not in the Windows version yet."] =
-            "Künye/Kaynakça sekmesi (kaynakça arama ve indirme) Windows sürümünde henüz yok.",
+        ["{0}: no reference lines found (each line needs a year)"] = "{0}: kaynakça satırı bulunamadı (her satırda yıl olmalı)",
+        ["No matching record found in Crossref"] = "Crossref'te eşleşen kayıt bulunamadı",
+        ["{0} downloaded"] = "{0} indirildi",
+        ["no open PDF for the article: open the page and download it with your subscription"] = "makale için açık PDF yok: sayfayı açıp aboneliğinle indir",
+        ["(OpenAlex unreachable: working-paper versions were not searched)"] = "(OpenAlex'e ulaşılamadı: çalışma kâğıdı sürümleri aranamadı)",
+        ["no downloadable version or page found"] = "indirilebilir sürüm ve sayfa bulunamadı",
+        ["network/limit problem"] = "ağ/sınır sorunu",
+        ["Download folder: {0}"] = "İndirme klasörü: {0}", ["Change…"] = "Değiştir…",
+        ["{0} article pages are waiting to be opened (to download with your subscription)"] = "{0} makale sayfası açılmayı bekliyor (abonelikle indirilecekler)",
+        ["Open next 5 pages"] = "Sonraki 5 sayfayı aç",
+        ["Drop a reference list (.docx or .txt)"] = "Kaynakça listesini (.docx veya .txt) bırakın",
+        ["Open-access PDFs (article and working-paper versions) are downloaded; for articles that need a subscription the page is opened."] =
+            "Açık erişimli PDF'ler (makale ve çalışma kâğıdı sürümü) indirilir; abonelik gerekenlerin sayfası açılır.",
+        ["Reopen"] = "Yeniden aç", ["Open page"] = "Sayfayı aç",
+        ["article"] = "makale", ["article (accepted version)"] = "makale (kabul edilen sürüm)", ["working paper/preprint"] = "çalışma kâğıdı/ön baskı",
+        ["working paper/report"] = "çalışma kâğıdı/rapor", ["book chapter"] = "kitap bölümü", ["book"] = "kitap", ["version"] = "sürüm",
         ["Biblio renames article PDFs to Surname - Year and keeps a reference list."] = "Biblio, makale PDF'lerini Soyad - Yıl biçiminde adlandırır ve künye listesi tutar.",
     };
 

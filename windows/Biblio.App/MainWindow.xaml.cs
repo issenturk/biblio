@@ -19,6 +19,8 @@ public partial class MainWindow : Window
         DataContext = model;
         LogList.ItemsSource = model.Log;
         FolderList.ItemsSource = model.Folders;
+        RefList.ItemsSource = model.RefItems;
+        model.RefsChanged += () => Dispatcher.Invoke(RefreshRefs);
         model.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(AppModel.StatusText) or nameof(AppModel.PendingNote) or nameof(AppModel.NamePreview)) Dispatcher.Invoke(Refresh);
@@ -44,8 +46,13 @@ public partial class MainWindow : Window
         ClearBtn.Content = Loc.T("Clear history");
         UndoLastBtn.Content = Loc.T("Undo last");
         RetryBtn.Content = Loc.T("Retry now");
-        RefsText.Text = Loc.T("The References tab (bibliography lookup and downloads) is not in the Windows version yet.");
+        RefDropTitle.Text = Loc.T("Drop a reference list (.docx or .txt)");
+        RefDropHint.Text = Loc.T("Open-access PDFs (article and working-paper versions) are downloaded; for articles that need a subscription the page is opened.");
+        RefFolderBtn.Content = Loc.T("Change…");
+        RefNextBtn.Content = Loc.T("Open next 5 pages");
+        RefClearBtn.Content = Loc.T("Clear history");
         Refresh();
+        RefreshRefs();
         // satır etiketleri yeniden çizilsin
         LogList.Items.Refresh();
     }
@@ -57,6 +64,46 @@ public partial class MainWindow : Window
         PendingBanner.Visibility = model.HasPending ? Visibility.Visible : Visibility.Collapsed;
         PendingText.Text = model.HasPending ? Loc.T("{0}. Will retry automatically.", model.PendingNote) : "";
     }
+
+    void RefreshRefs()
+    {
+        RefFolderText.Text = Loc.T("Download folder: {0}", model.RefFolder);
+        RefProgress.Visibility = model.RefBusy ? Visibility.Visible : Visibility.Collapsed;
+        RefClearBtn.IsEnabled = model.RefItems.Count > 0 && !model.RefBusy;
+        int w = model.RefPagesWaiting;
+        RefPagesBanner.Visibility = w > 0 ? Visibility.Visible : Visibility.Collapsed;
+        RefPagesText.Text = Loc.T("{0} article pages are waiting to be opened (to download with your subscription)", w);
+        RefList.Items.Refresh();
+    }
+
+    // MARK: Kaynakça sekmesi
+    static bool IsRefFile(string p) => p.EndsWith(".docx", StringComparison.OrdinalIgnoreCase) || p.EndsWith(".txt", StringComparison.OrdinalIgnoreCase);
+    void RefDrop_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        RefDropZone.Background = System.Windows.Media.Brushes.AliceBlue;
+        e.Handled = true;
+    }
+    void RefDrop_DragLeave(object sender, DragEventArgs e) => RefDropZone.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#F3F6F9")!;
+    void RefDrop_Drop(object sender, DragEventArgs e)
+    {
+        RefDrop_DragLeave(sender, e);
+        if (e.Data.GetData(DataFormats.FileDrop) is string[] paths && paths.FirstOrDefault(IsRefFile) is string f) model.LoadRefFile(f);
+    }
+    void RefDrop_Click(object sender, MouseButtonEventArgs e)
+    {
+        var dlg = new OpenFileDialog { Filter = "Reference list (*.docx;*.txt)|*.docx;*.txt" };
+        if (dlg.ShowDialog(this) == true) model.LoadRefFile(dlg.FileName);
+    }
+    void RefFolder_Click(object s, RoutedEventArgs e)
+    {
+        var dlg = new OpenFolderDialog();
+        if (dlg.ShowDialog(this) == true) model.RefFolder = dlg.FolderName;
+    }
+    void RefNext_Click(object s, RoutedEventArgs e) => model.OpenNextPages(5);
+    void RefClear_Click(object s, RoutedEventArgs e) => model.ClearRefItems();
+    void RefOpenPage_Click(object s, RoutedEventArgs e) { if ((s as FrameworkElement)?.Tag is RefItem it) model.OpenPage(it); }
+    void RefRemove_Click(object s, RoutedEventArgs e) { if ((s as FrameworkElement)?.Tag is RefItem it) model.RemoveRefItem(it); }
 
     // MARK: Bırakma alanı
     void DropZone_DragOver(object sender, DragEventArgs e)

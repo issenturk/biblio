@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Biblio.Core;
 
 namespace Biblio.App;
@@ -59,8 +60,39 @@ public class AppState
     public bool KeepAccents { get; set; }
     public string CiteStyle { get; set; } = "Apa";
     public string RefFileName { get; set; } = "";
+    public string? RefFolder { get; set; }
     public Dictionary<string, double> Skipped { get; set; } = new();
     public Dictionary<string, double> NamedFiles { get; set; } = new();
     public Dictionary<string, double> KunyeDone { get; set; } = new();
     public List<LogEntry> Log { get; set; } = new();
+}
+
+public enum RefStatus { Waiting, Working, Done, PageOnly, NotFound, Failed }
+
+/// <summary>Kaynakça sekmesindeki bir kaynak satırı.</summary>
+public class RefItem : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+    void N() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+
+    public Guid Id { get; } = Guid.NewGuid();
+    public string Text { get; set; } = "";
+    string title = "", note = "";
+    RefStatus status = RefStatus.Waiting;
+    string? page;
+    bool opened;
+
+    public string Title { get => title; set { title = value; N(); } }
+    public string Note { get => note; set { note = value; N(); } }
+    public RefStatus Status { get => status; set { status = value; N(); } }
+    public string? Page { get => page; set { page = value; N(); } }
+    public bool Opened { get => opened; set { opened = value; N(); } }
+
+    public string Display => Title.Length == 0 ? Text : Title;
+    public bool HasNote => Note.Length > 0;
+    public bool HasPage => Page != null;
+    public string PageLabel => Opened ? Loc.T("Reopen") : Loc.T("Open page");
+    public string Icon => Status switch { RefStatus.Done => "✔", RefStatus.Working => "⟳", RefStatus.PageOnly => "↗", RefStatus.NotFound => "?", RefStatus.Failed => "⚠", _ => "…" };
+    public System.Windows.Media.Brush IconBrush => (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString(
+        Status switch { RefStatus.Done => "#2E7D32", RefStatus.PageOnly => "#B26A00", RefStatus.Failed => "#C62828", _ => "#777777" })!;
 }

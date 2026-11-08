@@ -346,6 +346,108 @@ public class AppModel : INotifyPropertyChanged
         return f;
     }
 
+    // MARK: Kaynakça: listedeki eserleri bul, açık erişimlileri indir, diğerlerinin sayfasını aç
+    public ObservableCollection<RefItem> RefItems { get; } = new();
+    bool refBusy;
+    public bool RefBusy { get => refBusy; private set { refBusy = value; Notify(nameof(RefBusy)); } }
+    public int RefPagesWaiting => RefItems.Count(i => i.Page != null && !i.Opened);
+    public event Action? RefsChanged;
+
+    public string RefFolder
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(State.RefFolder)) return State.RefFolder!;
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", State.Language == "tr" ? "Kaynakça" : "References");
+        }
+        set { State.RefFolder = value; Save(); Notify(nameof(RefFolder)); RefsChanged?.Invoke(); }
+    }
+
+    public void LoadRefFile(string path)
+    {
+        if (RefBusy) return;
+        var entries = Bibliography.Entries(path);
+        RefItems.Clear();
+        if (entries.Count == 0)
+        {
+            RefItems.Add(new RefItem { Text = Loc.T("{0}: no reference lines found (each line needs a year)", Path.GetFileName(path)), Status = RefStatus.Failed });
+            RefsChanged?.Invoke();
+            return;
+        }
+        foreach (var e in entries) RefItems.Add(new RefItem { Text = e });
+        RefBusy = true;
+        var items = RefItems.ToList();
+        RefsChanged?.Invoke();
+        _ = Task.Run(async () =>
+        {
+            using var gate = new SemaphoreSlim(3);
+            await Task.WhenAll(items.Select(async it =>
+            {
+                await gate.WaitAsync();
+                try { await ProcessRef(it); } finally { gate.Release(); }
+            }));
+            await Application.Current.Dispatcher.InvokeAsync(() => { RefBusy = false; RefsChanged?.Invoke(); });
+        });
+    }
+
+    static void UI(Action a) => Application.Current.Dispatcher.Invoke(a);
+
+    async Task ProcessRef(RefItem item)
+    {
+        UI(() => item.Status = RefStatus.Working);
+        try
+        {
+            var r = await Bibliography.Resolve(item.Text);
+            if (r == null) { UI(() => { item.Status = RefStatus.NotFound; item.Note = Loc.T("No matching record found in Crossref"); }); return; }
+            var folder = RefFolder;
+            var shortName = string.Join("-", Text_.Fold(r.Title).Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(4));
+            var got = new List<string>(); var notes = new List<string>(); var hashes = new HashSet<string>();
+            bool published = false;
+            foreach (var v in r.Versions)
+            {
+                if (v.Pdf == null) continue;
+                var f = await Bibliography.DownloadPdf(v.Pdf, folder, $"ref-{shortName}-{(v.IsPublished ? "article" : "wp")}");
+                if (f == null) continue;
+                var fp = Bibliography.Fingerprint(f);
+                if (!hashes.Add(fp)) { try { File.Delete(f); } catch { } if (v.IsPublished) published = true; continue; }   // aynı dosya zaten indirildi
+                got.Add(f); notes.Add(Loc.T("{0} downloaded", Loc.T(v.Label))); if (v.IsPublished) published = true;
+            }
+            if (got.Count > 0) await Application.Current.Dispatcher.InvokeAsync(() => _ = Run(got, force: true));   // indirilenler Biblio ile adlandırılır, künyeleri eklenir
+            var page = published ? null : r.Landing;
+            var note = string.Join(", ", notes);
+            if (page != null) note += (note.Length == 0 ? "" : "; ") + Loc.T("no open PDF for the article: open the page and download it with your subscription");
+            if (r.OpenAlexDown) note += " " + Loc.T("(OpenAlex unreachable: working-paper versions were not searched)");
+            var status = got.Count > 0 ? RefStatus.Done : (page != null ? RefStatus.PageOnly : RefStatus.NotFound);
+            if (got.Count == 0 && page == null) note = Loc.T("no downloadable version or page found");
+            UI(() => { item.Title = r.Title; item.Page = page; item.Note = note; item.Status = status; RefsChanged?.Invoke(); });
+        }
+        catch (Exception)
+        {
+            var issue = Engine.LastIssue.Length == 0 ? Loc.T("network/limit problem") : Engine.LastIssue;
+            UI(() => { item.Status = RefStatus.Failed; item.Note = issue; });
+        }
+    }
+
+    public void OpenPage(RefItem item)
+    {
+        if (item.Page == null) return;
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(item.Page) { UseShellExecute = true }); } catch { }
+        item.Opened = true; RefsChanged?.Invoke();
+    }
+
+    public void OpenNextPages(int n = 5)
+    {
+        int c = 0;
+        foreach (var it in RefItems.Where(i => i.Page != null && !i.Opened).ToList())
+        {
+            if (c++ >= n) break;
+            OpenPage(it);
+        }
+    }
+
+    public void ClearRefItems() { if (!RefBusy) { RefItems.Clear(); RefsChanged?.Invoke(); } }
+    public void RemoveRefItem(RefItem it) { if (!RefBusy) { RefItems.Remove(it); RefsChanged?.Invoke(); } }
+
     // MARK: Oturum açılışında başlat
     public bool LaunchAtLogin
     {
