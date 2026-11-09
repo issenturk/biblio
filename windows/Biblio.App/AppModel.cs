@@ -384,7 +384,9 @@ public class AppModel : INotifyPropertyChanged
             await Task.WhenAll(items.Select(async it =>
             {
                 await gate.WaitAsync();
-                try { await ProcessRef(it); } finally { gate.Release(); }
+                try { await ProcessRef(it); }
+                catch (Exception ex) { UI(() => { it.Status = RefStatus.Failed; it.Note = ex.GetBaseException().Message; }); }
+                finally { gate.Release(); }
             }));
             await Application.Current.Dispatcher.InvokeAsync(() => { RefBusy = false; RefsChanged?.Invoke(); });
         });

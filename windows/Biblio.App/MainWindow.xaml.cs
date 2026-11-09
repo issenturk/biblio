@@ -25,6 +25,7 @@ public partial class MainWindow : Window
         {
             if (e.PropertyName is nameof(AppModel.StatusText) or nameof(AppModel.PendingNote) or nameof(AppModel.NamePreview)) Dispatcher.Invoke(Refresh);
         };
+        Title = "Biblio " + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "");
         BuildSettings();
         ApplyLanguage();
         Closing += (_, _) => model.Save();
