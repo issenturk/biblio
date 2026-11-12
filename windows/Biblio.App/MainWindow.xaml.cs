@@ -126,6 +126,14 @@ public partial class MainWindow : Window
         var dlg = new OpenFolderDialog();
         if (dlg.ShowDialog(this) == true) model.AddFolder(dlg.FolderName);
     }
+    public string ResetHelp => Loc.T("Start a new reference list for this folder (the current .docx is deleted)");
+    void ResetList_Click(object s, RoutedEventArgs e)
+    {
+        if ((s as FrameworkElement)?.Tag is not string p) return;
+        if (!model.HasRefList(p)) { MessageBox.Show(this, Loc.T("There is no Biblio reference list in this folder."), "Biblio"); return; }
+        if (MessageBox.Show(this, Loc.T("The current reference list (.docx) of this folder will be deleted and the next references start a fresh list. PDFs are not touched. Continue?"), Loc.T("Start a new reference list for this folder?"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            model.ResetRefList(p);
+    }
     void RemoveFolder_Click(object s, RoutedEventArgs e) { if ((s as FrameworkElement)?.Tag is string p) model.RemoveFolder(p); }
     void Watch_Click(object s, RoutedEventArgs e) => model.SetWatching(WatchCheck.IsChecked == true);
     void Retry_Click(object s, RoutedEventArgs e) => model.RetryNow();

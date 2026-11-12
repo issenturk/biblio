@@ -257,6 +257,17 @@ public class AppModel : INotifyPropertyChanged
     // MARK: Künye listesi
     string? AppendEntry(RefEntry e, string folder) => RefStore.Append(e, folder, RefBase(folder), Engine.Style);
 
+    public bool HasRefList(string folder) => File.Exists(Path.Combine(folder, "." + RefBase(folder) + ".json"));
+
+    public void ResetRefList(string folder)
+    {
+        var b = RefBase(folder);
+        if (!RefStore.Reset(folder, b)) return;
+        var docx = Path.Combine(folder, b + ".docx");
+        foreach (var e in Log.Where(l => string.Equals(l.ApaFile, docx, StringComparison.OrdinalIgnoreCase))) { e.ApaFile = null; e.Apa = null; }
+        Save();
+    }
+
     public void RegenerateRefFiles()
     {
         var folders = Folders.ToHashSet(StringComparer.OrdinalIgnoreCase);

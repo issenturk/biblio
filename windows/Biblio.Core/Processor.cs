@@ -129,10 +129,34 @@ public class Processor
 /// <summary>Klasör başına künye listesi: gizli .References.json (tam bilgi) + References.docx (seçili stilde, alfabetik).</summary>
 public static class RefStore
 {
+    public const string Suffix = " (Biblio)";
+
+    /// <summary>Listenin dosya adı. Klasörde Biblio'nun yazmadığı (yan dosyası olmayan) bir References.docx varsa onun üzerine yazılmaz: "References (Biblio)" kullanılır.</summary>
     public static string RefBase(string folder, string baseName, bool turkish)
     {
-        if (File.Exists(Path.Combine(folder, ".Künyeler.json"))) return "Künyeler";
-        return string.IsNullOrWhiteSpace(baseName) ? (turkish ? "Künyeler" : "References") : baseName;
+        var name = File.Exists(Path.Combine(folder, ".Künyeler.json")) && string.IsNullOrWhiteSpace(baseName)
+            ? "Künyeler"
+            : string.IsNullOrWhiteSpace(baseName) ? (turkish ? "Künyeler" : "References") : baseName.Trim();
+        if (File.Exists(Path.Combine(folder, "." + name + ".json"))) return name;
+        if (File.Exists(Path.Combine(folder, "." + name + Suffix + ".json"))) return name + Suffix;
+        if (File.Exists(Path.Combine(folder, name + ".docx"))) return name + Suffix;
+        return name;
+    }
+
+    /// <summary>Klasörün künye listesini boşaltır (yan dosya ve .docx silinir). Sonraki künyeler yeni bir listeye yazılır.</summary>
+    public static bool Reset(string folder, string baseName)
+    {
+        try
+        {
+            var docx = Path.Combine(folder, baseName + ".docx");
+            var side = Path.Combine(folder, "." + baseName + ".json");
+            if (!File.Exists(side)) return false;   // Biblio'nun yazmadığı dosyaya dokunma
+            if (File.Exists(docx)) File.Delete(docx);
+            File.SetAttributes(side, FileAttributes.Normal);
+            File.Delete(side);
+            return true;
+        }
+        catch { return false; }
     }
 
     public static List<RefEntry> Load(string folder, string baseName)
@@ -155,11 +179,12 @@ public static class RefStore
             if (entries.Count == 0)
             {
                 if (File.Exists(docx)) File.Delete(docx);
-                if (File.Exists(side)) File.Delete(side);
+                if (File.Exists(side)) { File.SetAttributes(side, FileAttributes.Normal); File.Delete(side); }
                 return null;
             }
             var rendered = entries.Select(e => (Text: e.Render(style), Flagged: e.NeedsCheck))
                 .OrderBy(x => Text_.Fold(x.Text.Replace("*", "")).ToLowerInvariant(), StringComparer.Ordinal).ToList();
+            try { if (File.Exists(side)) File.SetAttributes(side, FileAttributes.Normal); } catch { }   // gizli dosyaya yazmak hata verir
             File.WriteAllText(side, JsonSerializer.Serialize(entries, RefEntry.Json));
             try { File.SetAttributes(side, File.GetAttributes(side) | FileAttributes.Hidden); } catch { }
             File.WriteAllBytes(docx, Docx.Build(rendered));

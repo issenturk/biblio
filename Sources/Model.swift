@@ -431,12 +431,35 @@ final class Model: ObservableObject {
     // Klasördeki künyeler gizli bir yardımcı dosyada (.<ad>.json) tam yayın bilgisiyle tutulur; .docx, seçili stille her seferinde
     // alfabetik sırayla yeniden yazılır. Böylece stil değişince liste de yeni stile geçer.
 
+    /// Listenin dosya adı. Klasörde Biblio'nun yazmadığı (yan dosyası olmayan) bir References.docx varsa onun üzerine yazılmaz: "References (Biblio)" kullanılır.
     private func refBase(_ folder: URL) -> String {
-        if let c = state.refFileName, !c.trimmingCharacters(in: .whitespaces).isEmpty { return c }
         let fm = FileManager.default
-        if fm.fileExists(atPath: folder.appendingPathComponent(".Künyeler.json").path) { return "Künyeler" }       // eski sürümlerden devam
-        if fm.fileExists(atPath: folder.appendingPathComponent(".References.json").path) { return "References" }
-        return state.language == "tr" ? "Künyeler" : "References"
+        var name: String
+        if let c = state.refFileName?.trimmingCharacters(in: .whitespaces), !c.isEmpty { name = c }
+        else if fm.fileExists(atPath: folder.appendingPathComponent(".Künyeler.json").path) { name = "Künyeler" }   // eski sürümlerden devam
+        else { name = state.language == "tr" ? "Künyeler" : "References" }
+        let suffix = " (Biblio)"
+        if fm.fileExists(atPath: folder.appendingPathComponent("." + name + ".json").path) { return name }
+        if fm.fileExists(atPath: folder.appendingPathComponent("." + name + suffix + ".json").path) { return name + suffix }
+        if fm.fileExists(atPath: folder.appendingPathComponent(name + ".docx").path) { return name + suffix }
+        return name
+    }
+
+    /// Klasörün künye listesini boşaltır: .docx Çöp Sepeti'ne taşınır, yan dosya silinir. Sonraki künyeler yeni bir listeye yazılır.
+    func resetRefList(folder: String) {
+        let url = URL(fileURLWithPath: folder)
+        let base = refBase(url)
+        let side = url.appendingPathComponent("." + base + ".json")
+        guard FileManager.default.fileExists(atPath: side.path) else { return }   // Biblio'nun yazmadığı dosyaya dokunma
+        let docx = url.appendingPathComponent(base + ".docx")
+        if FileManager.default.fileExists(atPath: docx.path) { try? FileManager.default.trashItem(at: docx, resultingItemURL: nil) }
+        try? FileManager.default.removeItem(at: side)
+        for i in state.log.indices where state.log[i].apaFile == docx.path { state.log[i].apaFile = nil; state.log[i].apa = nil }
+    }
+
+    func hasRefList(folder: String) -> Bool {
+        let url = URL(fileURLWithPath: folder)
+        return FileManager.default.fileExists(atPath: url.appendingPathComponent("." + refBase(url) + ".json").path)
     }
 
     private func loadEntries(_ folder: URL) -> [RefEntry] {

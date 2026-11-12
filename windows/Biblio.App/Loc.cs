@@ -71,6 +71,11 @@ public static class Loc
         ["Reopen"] = "Yeniden aç", ["Open page"] = "Sayfayı aç",
         ["article"] = "makale", ["article (accepted version)"] = "makale (kabul edilen sürüm)", ["working paper/preprint"] = "çalışma kâğıdı/ön baskı",
         ["working paper/report"] = "çalışma kâğıdı/rapor", ["book chapter"] = "kitap bölümü", ["book"] = "kitap", ["version"] = "sürüm",
+        ["Start a new reference list for this folder (the current .docx is deleted)"] = "Bu klasör için yeni künye listesi başlat (mevcut .docx silinir)",
+        ["Start a new reference list for this folder?"] = "Bu klasör için yeni künye listesi başlatılsın mı?",
+        ["There is no Biblio reference list in this folder."] = "Bu klasörde Biblio'nun yazdığı bir künye listesi yok.",
+        ["The current reference list (.docx) of this folder will be deleted and the next references start a fresh list. PDFs are not touched. Continue?"] =
+            "Bu klasörün mevcut künye listesi (.docx) silinecek, sonraki künyeler boş bir listeye yazılacak. PDF'lere dokunulmaz. Devam edilsin mi?",
         ["Biblio renames article PDFs to Surname - Year and keeps a reference list."] = "Biblio, makale PDF'lerini Soyad - Yıl biçiminde adlandırır ve künye listesi tutar.",
     };
 

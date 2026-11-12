@@ -31,6 +31,7 @@
                         <DataTemplate>
                             <DockPanel LastChildFill="True">
                                 <Button DockPanel.Dock="Right" Content="✕" Padding="6,0" Click="RemoveFolder_Click" Tag="{Binding}" Background="Transparent" BorderThickness="0"/>
+                                <Button DockPanel.Dock="Right" Content="↺" Padding="6,0" Click="ResetList_Click" Tag="{Binding}" Background="Transparent" BorderThickness="0" ToolTip="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=ResetHelp}"/>
                                 <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"/>
                             </DockPanel>
                         </DataTemplate>

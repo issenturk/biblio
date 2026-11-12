@@ -28,6 +28,7 @@ struct PdfAdiApp: App {
 // MARK: Adlandır sekmesi
 
 struct ContentView: View {
+    @State private var resetFolder: String?
     @EnvironmentObject var model: Model
     private var targeted: Bool { model.targeted }
 
@@ -95,6 +96,11 @@ struct ContentView: View {
                         Image(systemName: "folder")
                         Text((p as NSString).abbreviatingWithTildeInPath).lineLimit(1).truncationMode(.middle)
                         Spacer()
+                        if model.hasRefList(folder: p) {
+                            Button { resetFolder = p } label: { Image(systemName: "arrow.counterclockwise.circle") }
+                                .buttonStyle(.borderless)
+                                .help(model.t("Start a new reference list for this folder (the current .docx is moved to the Trash)"))
+                        }
                         Button { model.removeFolder(p) } label: { Image(systemName: "minus.circle") }.buttonStyle(.borderless)
                     }
                 }
@@ -108,6 +114,12 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(4)
+        }
+        .confirmationDialog(model.t("Start a new reference list for this folder?"), isPresented: Binding(get: { resetFolder != nil }, set: { if !$0 { resetFolder = nil } }), titleVisibility: .visible) {
+            Button(model.t("Start new list"), role: .destructive) { if let f = resetFolder { model.resetRefList(folder: f) }; resetFolder = nil }
+            Button(model.t("Cancel"), role: .cancel) { resetFolder = nil }
+        } message: {
+            Text(model.t("The current reference list (.docx) of this folder is moved to the Trash and the next references start a fresh list. PDFs are not touched."))
         }
     }
 
